@@ -170,8 +170,6 @@ interrupt(registers_t *reg)
 		// for this register out of 'current->p_registers'.
 		current->p_state = P_ZOMBIE;
 		current->p_exit_status = current->p_registers.reg_eax;
-        if (current->p_waiting)
-            proc_array[(current->p_waiting)].p_state = P_RUNNABLE; //"wake up"
 		schedule();
 
 	case INT_SYS_WAIT: {
@@ -189,15 +187,9 @@ interrupt(registers_t *reg)
 		    || proc_array[p].p_state == P_EMPTY)
 			current->p_registers.reg_eax = -1;
 		else if (proc_array[p].p_state == P_ZOMBIE)
-        {
-            proc_array[p].p_state = P_EMPTY; //reaped zombie
 			current->p_registers.reg_eax = proc_array[p].p_exit_status;
-        }
-		else //want to wait until the process is done
-        {
-			current->p_state = P_BLOCKED;
-            proc_array[p].p_waiting = current->p_pid; //so we can "reawaken: later
-        }
+		else
+			current->p_registers.reg_eax = WAIT_TRYAGAIN;
 		schedule();
 	}
 
