@@ -223,8 +223,21 @@ static pid_t
 do_fork(process_t *parent)
 {
 	// YOUR CODE HERE!
+
 	// First, find an empty process descriptor.  If there is no empty
 	//   process descriptor, return -1.  Remember not to use proc_array[0].
+    
+    int i;
+    process_t* child;
+    for (i = 1; ; i++) {
+        if (i >= NPROCS) return -1; //reached the end of the array.
+
+        if (proc_array[i].p_state == P_EMPTY) { //found an empty pid
+            child = &proc_array[i];
+            break;
+        }
+    }
+
 	// Then, initialize that process descriptor as a running process
 	//   by copying the parent process's registers and stack into the
 	//   child.  Copying the registers is simple: they are stored in the
@@ -239,8 +252,18 @@ do_fork(process_t *parent)
 	//                What should sys_fork() return to the child process?)
 	// You need to set one other process descriptor field as well.
 	// Finally, return the child's process ID to the parent.
+    
+    //Copy the registers to the child proc
+    child->p_registers = parent->p_registers;
+    //We can't return to the child directly, so we just set eax to 0
+    //When it does get run again, eax will be 0 so it will be like we returned it
+    child->p_registers.reg_eax = 0;
+    //Copy the stack to child proc
+    copy_stack(child, parent);
+    //Make sure the child is set as "runnable."
+    child->p_state = P_RUNNABLE;
 
-	return -1;
+	return i; //the pid of the proc we just created.
 }
 
 static void
@@ -297,13 +320,20 @@ copy_stack(process_t *dest, process_t *src)
 	// We have done one for you.
 
 	// YOUR CODE HERE!
-
-	src_stack_top = 0 /* YOUR CODE HERE */;
+	src_stack_top = PROC1_STACK_ADDR + ((src->p_pid) * PROC_STACK_SIZE);
 	src_stack_bottom = src->p_registers.reg_esp;
-	dest_stack_top = 0 /* YOUR CODE HERE */;
-	dest_stack_bottom = 0 /* YOUR CODE HERE: calculate based on the
-				 other variables */;
-	// YOUR CODE HERE: memcpy the stack and set dest->p_registers.reg_esp
+    //Calculate the size of this stack (amt of mem used)
+    uint32_t stack_size = src_stack_top - src_stack_bottom;
+
+	dest_stack_top = PROC1_STACK_ADDR + ((dest->p_pid) * PROC_STACK_SIZE);
+	dest_stack_bottom = dest_stack_top - stack_size; //same size as src
+
+    //copy over the stack
+    memcpy((void*)dest_stack_bottom, (void*)src_stack_bottom, stack_size);
+
+    //change the esp of the dest to point to new value
+    dest->p_registers.reg_esp = dest_stack_bottom;
+  
 }
 
 

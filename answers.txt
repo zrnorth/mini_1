@@ -1,11 +1,18 @@
-Name:
-UCLA ID:
+Name: Zach North
+UCLA ID: 603885768
 
-Collaborators:
+Collaborators: none
 
 -------------------------------------------------------------------------------
 
 Response to Exercise 1:
+
+The pid returned would possibly not be correct. The way we return the pid value is by
+placing it in the eax register; if we then schedule a new process, it may
+overwrite the eax register. When we finally get around to the current process
+again, it will return whatever is in eax, which may be something completely
+different. WeensyOS does not save register values, so the value of eax will be
+garbage.
 
 
 
