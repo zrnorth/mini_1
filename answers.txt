@@ -18,6 +18,14 @@ garbage.
 
 Anything else you'd like us to know:
 
+The way I implemented part 3 was to add a variable to the process_t struct. If
+a process is waiting on another to finish, I set it's status to P_BLOCKED so
+the scheduler does not start it up again, and then set the process being
+waited on's p_waiting integer to the waiting pid. Then when the process exits,
+it sets the process waiting on it's status back to P_RUNNABLE (reawakening it)
+so the scheduler will start it up again. Then when it starts it can reap the
+child process and continue as normal.
+
 
 
 Extra credit exercises:
